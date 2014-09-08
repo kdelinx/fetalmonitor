@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/pic">
+        <file>red-circle-md.png</file>
+        <file>speech_circle_yellow.png</file>
+        <file>green-circle-md.png</file>
+    </qresource>
+</RCC>
