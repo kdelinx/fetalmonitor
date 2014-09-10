@@ -1,21 +1,18 @@
 #include "mainx11.h"
 #include <stdio.h>
 #include <QDebug>
-#include <QMessageBox>
-#include <QFileDialog>
 #include <QAuthenticator>
 #include <QJsonObject>
-#include <QJsonArray>
 #include <QJsonValue>
+#include <QBluetoothLocalDevice>
+#include <QBluetoothServiceDiscoveryAgent>
 #include <QJsonDocument>
 #include <QVariant>
 #include <QByteArray>
-#include <QProcess>
 #include <QString>
 #include <QFile>
 #include <QCryptographicHash>
 #include "ui_mainx11.h"
-#include <signal.h>
 #define MSG_NOSIGNAL 0x2000 /* don't raise SIGPIPE */
 
 mainX11::mainX11(QWidget *parent) :
@@ -41,6 +38,30 @@ void mainX11::onConnected() {
     connect(mSocket, SIGNAL(readChannelFinished()), SLOT(readChannelFinished()));
 
     mSocket->open(ba);
+
+    QBluetoothLocalDevice localDevice;
+    QString localDeviceName;
+
+    if(localDevice.isValid()) {
+        localDevice.powerOn();
+        localDeviceName = localDevice.name();
+        localDevice.setHostMode(QBluetoothLocalDevice::HostConnectable);
+        QList<QBluetoothAddress> remoteDevices;
+        remoteDevices = localDevice.connectedDevices();
+    }
+    qDebug() << "Device name - " << localDeviceName;
+}
+
+void mainX11::startDeviceDiscovery() {
+    QBluetoothDeviceDiscoveryAgent *discoverAgent = new QBluetoothDeviceDiscoveryAgent(this);
+    connect(discoverAgent, SIGNAL(deviceDiscovered(QBluetoothDeviceInfo)),
+            this, SLOT(deviceDiscovered(QBluetoothDeviceInfo)));
+    discoverAgent->start(); // start scaning!
+    qDebug() << "Scanning devices...";
+}
+
+void mainX11::deviceDiscovered(const QBluetoothDeviceInfo &info) {
+    qDebug() << "Found the devices " << info.name() << "(" << info.address().toString() << ")";
 }
 
 void mainX11::readChannelFinished() {
@@ -76,12 +97,6 @@ void mainX11::stateChanged(QAbstractSocket::SocketState state)
 
 void mainX11::on_send_clicked()
 {
-    struct sigvec act;
-    act.sv_handler = SIG_IGN;
-    if(sigaction(SIGPIPE, &act,NULL) == 0) {
-        return;
-    }
-
     QFile *file = new QFile();
     file->setFileName("/home/kdelinx/shakira.mp3");
     ui->path->setText(file->fileName());
@@ -89,7 +104,6 @@ void mainX11::on_send_clicked()
         return;
     }
     mSocket->bytesWritten(file->size() / 10);
-    int i = -1;
     mSocket->readBufferSize();
     QByteArray blob = file->readAll();
     qDebug() << "sizeof before - " << blob;

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui websockets
+QT       += core gui websockets bluetooth
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

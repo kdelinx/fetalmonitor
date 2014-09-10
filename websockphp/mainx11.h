@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QWebSocket>
 #include <QFileDialog>
+#include <QBluetoothDeviceInfo>
 
 namespace Ui {
     class mainX11;
@@ -24,6 +25,8 @@ private slots:
     void onTextMessageReceived(const QString &message);
     void stateChanged(QAbstractSocket::SocketState state);
     void on_send_clicked();
+    void startDeviceDiscovery();
+    void deviceDiscovered(const QBluetoothDeviceInfo &info);
 
 private:
     Ui::mainX11 *ui;
