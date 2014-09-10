@@ -18,5 +18,3 @@ SOURCES += main.cpp\
 HEADERS  += mainx11.h
 
 FORMS    += mainx11.ui
-
-LIBS    += -lcrypto

@@ -23,16 +23,15 @@ private slots:
     void readChannelFinished();
     void onTextMessageReceived(const QString &message);
     void stateChanged(QAbstractSocket::SocketState state);
-    QString on_browse_clicked();
+    void on_send_clicked();
 
 private:
     Ui::mainX11 *ui;
     QFileDialog *fileDialog;
     QWebSocket *mSocket;
     QString str_sha1;
-    QFile *file;
     QString *browse;
-    QFileDialog *dialog;
+    QByteArray *blob;
 };
 
 #endif // MAINX11_H

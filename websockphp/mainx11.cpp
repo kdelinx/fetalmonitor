@@ -15,6 +15,8 @@
 #include <QFile>
 #include <QCryptographicHash>
 #include "ui_mainx11.h"
+#include <signal.h>
+#define MSG_NOSIGNAL 0x2000 /* don't raise SIGPIPE */
 
 mainX11::mainX11(QWidget *parent) :
     QMainWindow(parent),
@@ -32,7 +34,7 @@ mainX11::~mainX11()
 }
 
 void mainX11::onConnected() {
-    QUrl ba = QString("ws://79.136.138.123:8000");
+    QUrl ba = QString("ws://10.10.10.160:8000");
     mSocket = new QWebSocket();
     connect(mSocket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), SLOT(stateChanged(QAbstractSocket::SocketState)));
     connect(mSocket, SIGNAL(textMessageReceived(QString)), SLOT(onTextMessageReceived(QString)));
@@ -61,6 +63,8 @@ void mainX11::onTextMessageReceived(const QString& message) {
     qDebug() << "Salt" << salt;
     str_sha1 = QString(QCryptographicHash::hash(salt.toLatin1(),QCryptographicHash::Sha1).toHex());
     qDebug() << "str_sha1"  << str_sha1;
+    quint64 i = 2000000;
+    mSocket->setReadBufferSize(i);
     mSocket->sendTextMessage(str_sha1);
 }
 
@@ -70,16 +74,27 @@ void mainX11::stateChanged(QAbstractSocket::SocketState state)
     qDebug() << state;
 }
 
-QString mainX11::on_browse_clicked()
+void mainX11::on_send_clicked()
 {
-    QString browse = QFileDialog::getOpenFileName(this, tr("Open file"), QDir::currentPath(), tr("All files (*.*)"));
-    QFile file(browse);
-    ui->path->setText(browse);
-    if(!file.open(QFile::ReadOnly)) {
-        return 0;
+    struct sigvec act;
+    act.sv_handler = SIG_IGN;
+    if(sigaction(SIGPIPE, &act,NULL) == 0) {
+        return;
     }
-    QByteArray blob = file.readAll();
-    mSocket->sendBinaryMessage(blob);
 
+    QFile *file = new QFile();
+    file->setFileName("/home/kdelinx/shakira.mp3");
+    ui->path->setText(file->fileName());
+    if(!file->open(QFile::ReadWrite|QIODevice::ReadOnly)) {
+        return;
+    }
+    mSocket->bytesWritten(file->size() / 10);
+    int i = -1;
+    mSocket->readBufferSize();
+    QByteArray blob = file->readAll();
+    qDebug() << "sizeof before - " << blob;
+    mSocket->sendBinaryMessage(blob);
     qDebug() << "file size - " << blob.size();
+    qDebug() << "sizeof after - " << sizeof(blob);
+    mSocket->ping(blob);
 }
