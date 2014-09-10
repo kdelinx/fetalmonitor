@@ -1,9 +1,6 @@
 #include "mainx11.h"
-#include <stdio.h>
+#include <QMenu>
 #include <QDebug>
-#include <QAuthenticator>
-#include <QJsonObject>
-#include <QJsonValue>
 #include <QBluetoothLocalDevice>
 #include <QBluetoothServiceDiscoveryAgent>
 #include <QJsonDocument>
@@ -21,13 +18,26 @@ mainX11::mainX11(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    discoveryAgent = new QBluetoothDeviceDiscoveryAgent();
+
     connect(ui->connect, SIGNAL(clicked()), this, SLOT(onConnected()));
+    connect(ui->connect, SIGNAL(clicked()), this, SLOT(startScan()));
+
+    connect(ui->connect, SIGNAL(clicked()), this, SLOT(startScan()));
+    connect(discoveryAgent, SIGNAL(deviceDiscovered(QBluetoothDeviceInfo)), this, SLOT(addDevice(QBluetoothDeviceInfo)));
+    connect(discoveryAgent, SIGNAL(finished()), this, SLOT(finishScan()));
+
+    ui->list->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->list, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(displayPairingMenu(QPoint)));
+    connect(localDevice, SIGNAL(pairingFinished(QBluetoothAddress,QBluetoothLocalDevice::Pairing)),
+            this, SLOT(pairingDone(QBluetoothAddress,QBluetoothLocalDevice::Pairing)));
 }
 
 mainX11::~mainX11()
 {
     delete ui;
     delete mSocket;
+    delete discoveryAgent;
 }
 
 void mainX11::onConnected() {
@@ -38,7 +48,10 @@ void mainX11::onConnected() {
     connect(mSocket, SIGNAL(readChannelFinished()), SLOT(readChannelFinished()));
 
     mSocket->open(ba);
+}
 
+void mainX11::startScan() {
+    ui->connect->setEnabled(false);
     localDevice = new QBluetoothLocalDevice();
     QString localDeviceName;
 
@@ -46,12 +59,10 @@ void mainX11::onConnected() {
         localDevice->powerOn();
         localDeviceName = localDevice->name();
         localDevice->setHostMode(QBluetoothLocalDevice::HostConnectable);
-        QList<QBluetoothAddress> remoteDevices;
-        remoteDevices = localDevice->connectedDevices();
     }
-    connect(discoveryAgent, SIGNAL(deviceDiscovered(QBluetoothDeviceInfo)),
-            this, SLOT(addDevice(QBluetoothDeviceInfo)));
-    qDebug() << "Device name - " << localDeviceName;
+    // start scan
+    discoveryAgent->start();
+    ui->devname->setText(localDeviceName);
 }
 
 void mainX11::addDevice(const QBluetoothDeviceInfo &device) {
@@ -69,9 +80,48 @@ void mainX11::addDevice(const QBluetoothDeviceInfo &device) {
     }
 }
 
-void mainX11::readChannelFinished() {
-
+void mainX11::finishScan() {
+    ui->connect->setEnabled(true);
 }
+
+void mainX11::displayPairingMenu(const QPoint &pos)
+{
+    QMenu menu(this);
+    QAction *pairAction = menu.addAction("Pair");
+    QAction *removePairAction = menu.addAction("Remove Pairing");
+    QAction *chosenAction = menu.exec(ui->list->viewport()->mapToGlobal(pos));
+    QListWidgetItem *currentItem = ui->list->currentItem();
+
+    QString text = currentItem->text();
+    int index = text.indexOf(' ');
+    if (index == -1)
+        return;
+
+    QBluetoothAddress address (text.left(index));
+    if (chosenAction == pairAction) {
+        localDevice->requestPairing(address, QBluetoothLocalDevice::Paired);
+    } else if (chosenAction == removePairAction) {
+        localDevice->requestPairing(address, QBluetoothLocalDevice::Unpaired);
+    }
+}
+
+void mainX11::pairingDone(const QBluetoothAddress &address, QBluetoothLocalDevice::Pairing pairing)
+{
+    QList<QListWidgetItem *> items = ui->list->findItems(address.toString(), Qt::MatchContains);
+
+    if (pairing == QBluetoothLocalDevice::Paired || pairing == QBluetoothLocalDevice::AuthorizedPaired ) {
+        for (int var = 0; var < items.count(); ++var) {
+            QListWidgetItem *item = items.at(var);
+            item->setTextColor(QColor(Qt::green));
+        }
+    } else {
+        for (int var = 0; var < items.count(); ++var) {
+            QListWidgetItem *item = items.at(var);
+            item->setTextColor(QColor(Qt::red));
+        }
+    }
+}
+
 
 void mainX11::onTextMessageReceived(const QString& message) {
     QByteArray jsonArr(message.toLatin1().data());

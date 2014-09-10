@@ -14,65 +14,78 @@
    <string>mainX11</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QLabel" name="label_2">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>340</y>
-      <width>411</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
    <widget class="QWidget" name="">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>0</y>
-      <width>411</width>
-      <height>361</height>
+      <x>10</x>
+      <y>10</y>
+      <width>421</width>
+      <height>351</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="2" column="0" colspan="2">
-      <widget class="QPushButton" name="connect">
+     <item row="4" column="0" alignment="Qt::AlignBottom">
+      <widget class="QLabel" name="label">
+       <property name="minimumSize">
+        <size>
+         <width>207</width>
+         <height>14</height>
+        </size>
+       </property>
        <property name="text">
-        <string>Connect</string>
+        <string>Файл:</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="1" colspan="2">
-      <widget class="QLabel" name="path">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="2">
+     <item row="6" column="1">
       <widget class="QPushButton" name="send">
        <property name="text">
         <string>Отправить</string>
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label">
+     <item row="6" column="0">
+      <widget class="QPushButton" name="connect">
        <property name="text">
-        <string>Файл:</string>
+        <string>Connect</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="0" colspan="2">
-      <widget class="QPushButton" name="browse">
+     <item row="4" column="1">
+      <widget class="QLabel" name="path">
+       <property name="maximumSize">
+        <size>
+         <width>206</width>
+         <height>14</height>
+        </size>
+       </property>
        <property name="text">
-        <string>Обзор</string>
+        <string/>
        </property>
       </widget>
      </item>
-     <item row="0" column="2">
+     <item row="3" column="0" colspan="2">
+      <widget class="QPushButton" name="listen">
+       <property name="text">
+        <string>Listen RAW data</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="text">
+        <string>Имя устройства:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLabel" name="devname">
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0" colspan="2">
       <widget class="QListWidget" name="list"/>
      </item>
     </layout>

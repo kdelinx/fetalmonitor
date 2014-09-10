@@ -18,3 +18,8 @@ SOURCES += main.cpp\
 HEADERS  += mainx11.h
 
 FORMS    += mainx11.ui
+
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
+
+OTHER_FILES += \
+    android/AndroidManifest.xml

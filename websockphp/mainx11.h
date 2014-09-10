@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include <QWebSocket>
-#include <QFileDialog>
+#include <QBluetoothSocket>
 #include <QBluetoothDeviceInfo>
 #include <QBluetoothLocalDevice>
 #include <QBluetoothDeviceDiscoveryAgent>
@@ -23,21 +23,23 @@ public:
     ~mainX11();
 private slots:
     void onConnected();
-    void readChannelFinished();
     void onTextMessageReceived(const QString &message);
     void stateChanged(QAbstractSocket::SocketState state);
     void on_send_clicked();
+    void startScan();
     void addDevice(const QBluetoothDeviceInfo &device);
+    void finishScan();
+    void displayPairingMenu(const QPoint &pos);
+    void pairingDone(const QBluetoothAddress &address, QBluetoothLocalDevice::Pairing pairing);
 
 private:
     Ui::mainX11 *ui;
-    QFileDialog *fileDialog;
     QWebSocket *mSocket;
     QString str_sha1;
-    QString *browse;
     QByteArray *blob;
     QBluetoothLocalDevice *localDevice;
     QBluetoothDeviceDiscoveryAgent *discoveryAgent;
+    QBluetoothSocket *btSocket;
 };
 
 #endif // MAINX11_H
