@@ -39,29 +39,34 @@ void mainX11::onConnected() {
 
     mSocket->open(ba);
 
-    QBluetoothLocalDevice localDevice;
+    localDevice = new QBluetoothLocalDevice();
     QString localDeviceName;
 
-    if(localDevice.isValid()) {
-        localDevice.powerOn();
-        localDeviceName = localDevice.name();
-        localDevice.setHostMode(QBluetoothLocalDevice::HostConnectable);
+    if(localDevice->isValid()) {
+        localDevice->powerOn();
+        localDeviceName = localDevice->name();
+        localDevice->setHostMode(QBluetoothLocalDevice::HostConnectable);
         QList<QBluetoothAddress> remoteDevices;
-        remoteDevices = localDevice.connectedDevices();
+        remoteDevices = localDevice->connectedDevices();
     }
+    connect(discoveryAgent, SIGNAL(deviceDiscovered(QBluetoothDeviceInfo)),
+            this, SLOT(addDevice(QBluetoothDeviceInfo)));
     qDebug() << "Device name - " << localDeviceName;
 }
 
-void mainX11::startDeviceDiscovery() {
-    QBluetoothDeviceDiscoveryAgent *discoverAgent = new QBluetoothDeviceDiscoveryAgent(this);
-    connect(discoverAgent, SIGNAL(deviceDiscovered(QBluetoothDeviceInfo)),
-            this, SLOT(deviceDiscovered(QBluetoothDeviceInfo)));
-    discoverAgent->start(); // start scaning!
-    qDebug() << "Scanning devices...";
-}
-
-void mainX11::deviceDiscovered(const QBluetoothDeviceInfo &info) {
-    qDebug() << "Found the devices " << info.name() << "(" << info.address().toString() << ")";
+void mainX11::addDevice(const QBluetoothDeviceInfo &device) {
+    QString label = QString("%1%2").arg(device.address().toString()).arg(device.name());
+    QList<QListWidgetItem *> items = ui->list->findItems(label, Qt::MatchExactly);
+    if (items.empty()) {
+        QListWidgetItem *item = new QListWidgetItem(label);
+        QBluetoothLocalDevice::Pairing pairingStatus = localDevice->pairingStatus(device.address());
+        if (pairingStatus == QBluetoothLocalDevice::Paired || pairingStatus == QBluetoothLocalDevice::AuthorizedPaired) {
+            item->setTextColor(QColor(Qt::green));
+        }else{
+            item->setTextColor(QColor(Qt::red));
+        }
+        ui->list->addItem(item);
+    }
 }
 
 void mainX11::readChannelFinished() {
